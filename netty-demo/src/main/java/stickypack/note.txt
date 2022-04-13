@@ -1,0 +1,22 @@
+TCP是面向连接的、面向流的，提供高可靠性服务。收发两端（客户端和服务端都要有一一成对的socket）。
+因此，发送端为了将多个发送发给接收端的包，更有效的发给对方，使用了优化方法（Nagle算法），
+并多次间隔较小且数据量小的数据，合并成一个大的数据块，然后进行封包。
+
+这样做虽然提高了效率，但是接收端就难于分辨出完整的数据包，因此面向流的通信是无消息保护边界的。
+
+解决方案：
+    1、使用自定义协议+编解码器来解决
+    2、关键是解决服务器端每次读取数据长度问题，这个问题解决，就不会出现服务器多读或者少读问题。
+
+    MessageBean
+        len：int // 关键信息，表示消息长度
+        content：byte[]
+
+    Decoder:
+        len = in.readInt();
+        byte[] content = new byte[content]
+        in.readBytes(content)
+        MessageBean message = new MessageBean()
+        message.setLen(len)
+        message.setContent(content)
+        out.add(message)

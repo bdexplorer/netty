@@ -1,0 +1,18 @@
+1. ChannelHandler充当了处理入站和出站数据的应用程序逻辑的容器。实现了ChannelInboundHandler或者
+（继承ChannelInboundHandlerAdapter）就可以接收入站事件和数据。
+
+2. ChannelPipeline提供了ChannelHandler链的容器。
+以客户端程序为例，如果事件的运动方向从客户端到服务端的，那么我们称这些事件为出站。
+即客户端发送给服务器的数据通过pipeline中的一系列ChannelOutboundHandler，并被这些Handler处理。
+反之称为入站。
+
+出站：pipeline从后到前 MyClientHandler-> MyLongToByteEncoder
+    pipeline.addLast(new MyLongToByteEncoder()).addLast(new MyClientHandler());
+入站：pipeline处理从前到后 MyByteToLongDecoder -> MyServerHandler
+    pipeline.addLast(new MyByteToLongDecoder()).addLast(new MyServerHandler());
+
+
+编码器 -> ChannelOutboundHandler：出站需要转为字节码
+解码器 -> ChannelInboundHandler：处理数据需要转为class
+
+粘包和拆包：

@@ -1,0 +1,14 @@
+1. 通道可以同时进行读写，而流只能读或者只能写
+2. 通道可以实现异步读写数据
+3. 通道可以从缓冲区读数据，也可以写数据到缓冲区。
+
+FileChannel、
+DatagramChannel、
+ServerSocketChannel、 产生SocketChannel与Client通信
+SocketChannel
+
+FileChannel
+read 从通道读数据放到缓冲区
+write 从缓冲区写数据到通道
+transferFrom(src, position, count) 从目标通道复制数据到当前通道
+transferTo(position, count, dest) 把数据从当前通道复制给目标通道。

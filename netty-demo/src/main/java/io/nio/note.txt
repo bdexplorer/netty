@@ -1,0 +1,13 @@
+NIO三大核心组件：Channel、Selector、Buffer
+Selector可以根据事件选择Channel，每个通道对应一个buffer。
+server <-> buffer <-> channel <--> buffer <-> client
+Nio面向Buffer编程
+
+Selector、Channel和Buffer的关系
+1. 每个channel对应一个Buffer
+2. Selector对应一个线程，一个Selector对应多个Channel
+3. Channel会注册到Selector
+4. 程序切换到哪个channel是由事件决定的。
+5. Selector根据不同的事件，在各个通道上切换。
+6. Buffer可以读也可以写
+7. channel是双向的

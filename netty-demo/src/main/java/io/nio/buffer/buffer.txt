@@ -1,0 +1,29 @@
+Buffer：本质上是一个可以读写数据的内存块。该对象提供了一组方法，可以轻松地使用内存块。
+    缓冲区对象内置了一些机制，可以跟踪和记录缓冲区的状态变化情况。
+    Channel提供从文件、网络读取数据的渠道，但是读取或写入的数据必须经由buffer
+
+mark：标记。
+position：下一个要被读或写的元素
+limit：缓冲区当前终点。不能对缓冲区超过极限的位置进行读写操作，极限位置是可以修改的。
+capacity：数组的容量，可容纳最大的数据量，初始化时定义，不能改变
+
+
+flip操作：
+    limit = position;
+    position = 0;
+    mark = -1;
+    return this;
+
+可以设置position位置
+
+
+Buffer及其子类。用的最多的是ByteBuffer
+
+asReadOnlyBuffer只读buffer
+
+MappedByteBuffer可以让文件直接在内存中（对外内存）进行修改，而如何同步到文件由NIO来完成。
+
+分散和聚合
+
+Scattering（分散）: 将数据写入到buffer时，可以采用buffer数组，依次写入。
+Gathering(聚合)：从buffer读取数据时，可以采用buffer数组，依次读

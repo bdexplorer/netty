@@ -1,0 +1,108 @@
+1、 Bootstrap的意思是引导，一个Netty应用通常由一个Bootstrap开始，主要作用是配置整个Netty程序。
+    Bootstrap类是客户端程序的启动引导类，ServerBootstrap是服务端启动引导类。
+
+ 常见方法
+    group-用于服务端，用来设置两个EventLoopGroup；用于客户端，用于设置一个EventLoopGroup
+    channel-设置一个服务器端的通道实现
+    option-用来给ServerChannel添加配置
+    childOption-用来给接收到的通道添加配置
+    childHandler-设置业务处理类
+    bind-服务端绑定端口
+    connect-客户端连接服务器。
+
+2、Future、ChannelFuture
+    Netty中所有的IO操作都是异步的，不能得知消息是否被正确处理。可以注册一个监听
+
+    Channel channel() 返回当前正在进行IO操作的通道
+    ChannelFuture sync() 等待异步操作执行完毕。
+
+3、Channel
+    Netty网络通信的组件，能够用于执行网络I/O操作
+    通过Channel可以获取当前网络连接的通道状态
+    通过Channel可以获取网络连接的配置参数
+    Channel提供异步的网络I/O操作。意味着任何I/O都立即返回，并且不保证在调用结束时所有请求I/O操作都已完成。
+    调用立即返回一个ChannelFuture实例，通过注册监听到ChannelFuture上。
+
+4、Selector
+    netty基于Selector对象实现I/O多路复用，通过Selector一个线程可以监听多个连接的Channel事件。
+    当向一个Selector中注册Channel后，Selector内部的机制就可以自动不断地查询-Select这些注册的Channel是否有已就绪的I/O事件。
+
+5、ChannelHandler
+    ChannelInboundHandler用于处理入站IO事件
+    ChannelOutboundHandler用于处理出站的I/O事件
+    ChannelInboundHandlerAdapter用于处理入站IO事件
+    ChannelOutboundHandlerAdapter用于处理出站的I/O事件
+    ChannelDuplexHandler用于处理入站和出站事件，一般不用
+
+    方法：
+       channelActive
+       channelInActive
+       channelRead
+       channelReadComplete
+
+6、Pipeline和ChannelPipeline
+ ChannelPipeline是Handler的集合，它负责处理和拦截inbound或者outbound事件和操作。相当于一个Netty的链。
+ ChannelPipeline实现了一种高级形式的拦截过滤器模式，使用户可以完全控制事件的处理方式以及Channel中各个的ChannelHandler如何相互交互。
+
+ 在Netty中每个Channel都有且仅有一个ChannelPipeline阈值对应。期关系如下：
+    channel
+        channelPipeline[head(channelHandler)<->channelHandler<->channelHandler(tail)]
+ 一个Channel包含了一个ChannelPipeline，而ChannelPipeline右维护了一个由ChannelHandlerContext组成的双向链表。并且每个
+ ChannelHandlerContext中又关联着一个ChannelHandler。
+
+ 入站从head到tail
+ 出站从tail到head
+
+ 7、 ChannelHandlerContext
+    保存了Channel相关的所有上下文信息，同时关联一个ChannelHandler对象
+    ChannelHandlerContext包含一个事件处理器ChannelHandler，也绑定了对应的pipeline对象和Channel信息。
+
+    常用方法：
+        close
+        flush
+        writeAndFlush
+
+8、ChannelOption
+    ChannelOption.SO_BACKLOG 对应TCP/IP协议listen函数中的backlog参数，用来初始化服务器可连接队列大小。
+    服务端处理客户端连接请求是顺序处理的，所以同一时间只能处理一个客户端连接。多个客户端来的时候，服务端将不能
+    处理的客户端连接请求放在队列中等待处理，backlog参数指定了队列的大小。
+
+    ChannelOption.SO_KEEPLIVE一直保持连接活动状态
+
+9、EventLoopGroup和NioEventLoopGroup
+    EventLoopGroup是一组EventLoop的抽象，Netty为了更好的利用多核CPU资源，一般会有多个EventLoop同时工作。
+    每个EventLoop都维护者一个Selector实例
+
+    EventLoopGroup提供next接口，可以从组里面按照一定规则获取其中一个EventLoop来处理任务。
+
+    通常一个服务端口即一个ServerSocketChannel对应一个Selector和一个EventLoop线程。BossEventLoop负责接收客户端的连接并
+    将SocketChannel交给WorkerEventLoopGroup来进行IO处理。
+
+    BossEventLoopGroup通常是一个单线程的EventLoop，
+    EventLoop维护着一个注册了ServerSocketChannel的Selector实例，BossEventLoop不断轮询Selector将连接事件分离出来。
+
+    通常是OP_ACCEPT事件，然后将接收到的SocketChannel交给WorkerEventLoopGroup
+    WorkerEventLoopGroup会由next选择其中一个EventLoopGroup来将这个SocketChannel注册到其维护的Selector并对其后序的IO事件进行处理。
+
+10、Unpooled类
+    Netty提供了一个专门用来操作缓冲区的工具类
+    方法：
+        copiedBuffer
+        buffer
+
+    Buffer方法：
+        hasArray
+        array
+        arrayOffset
+        readerIndex
+        writerIndex
+        getByte不会导致readerIndex变化
+
+    readerIndex-下一个读的位置 readByte会导致readerIndex变化
+    writerIndex-下一个写的位置 writeByte会导致writerIndex变化
+    capacity
+
+    writerIndex-capacity是可写的范围
+    readerIndex-writerIndex可读范围
+
+    0-readerIndex-writerIndex-capacity

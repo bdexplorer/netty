@@ -1,0 +1,33 @@
+1. Java NIO用非阻塞IO的方式，可以用一个线程，处理多个的客户端连接，就会用到Selector
+2. Selector能够检测多个注册的通道上是否有事件发生（多个Channel以事件的方式可以注册到同一个Selector）
+如果事件发生，便获取事件然后针对每个事件进行相应的处理。这样可以只用一个单线程去管理多个通道，也就是管理多个连接和请求
+3. 只有连接真正有读写事件发生时，才会进行读写。减少系统开，并且不必为每个连接都创建一个线程。
+4. 避免多线程之间上下文切换。
+
+1. Netty的IO线程NioEventLoop聚合了Selector，可以同时处理多个客户端连接。
+2. 当线程从某个客户端Socket通道进行读写数据时，若没有数据可用时，该线程可以进行其他任务。
+3. 线程通常将非阻塞IO的空闲时间用于在其他通道上执行IO操作，所以单独的线程可以管理多个输入和输出通道。
+4. 由于读写是非阻塞的，这就可以充分提升IO线程的运行效率。避免了线程挂起。
+
+
+Selector方法：
+    open 获取一个选择器对象
+    select 监控所有注册的通道，当其中有IO操作可以进行时，将对应的SelectionKey加入到内部集合并返回。
+        如果没有selectedKey激活，会阻塞，可以设置超时时间
+    selectNow 不会阻塞
+    selectedKeys
+    wakeUp 唤醒selector
+
+    selectedKey <-> Channel，如果有事件发生会在Selector中注册selectedKey
+
+
+1、当客户端连接时，会通过ServerSocketChannel得到SocketChannel
+2、将socketChannel注册到Selector上，register(Selector sel, int ops)，一个selector上可以注册多个SocketChannel。
+3、注册后返回一个SelectionKey，会和该Selector关联（集合）
+4、Selector进行监听select方法，返回有事件发生的通道个数，
+5、进一步得到各个SelectedKey（有事件发生的）
+6、在通过SelectionKey反向获取到Channel
+7、通过Channel完成业务处理。
+
+
+SelectKey

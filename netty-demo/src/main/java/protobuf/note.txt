@@ -1,0 +1,29 @@
+1. codec的组成部分有两个：decoder(解码器)和encoder(编码器)
+    encoder负责把业务数据转换成字节码数据。
+    decoder负责把字节码数据转换成业务数据。
+2. Netty本身自带的ObjectDecoder和ObjectEncoder可以用来实现POJO或各种业务对象的编码和解码。
+底层使用Java序列化技术，而Java序列化技术本身效率不高。
+    缺点：
+        1）无法跨语言
+        2）序列化后体积太大
+        3）序列化性能太低
+
+引出：Protobuf
+1. ProtocolBuf是谷歌发布的开源项目，是一种轻便高效的结构化数据存储格式。它很适合做数据存储或RPC数据交换格式。
+2. ProtocolBuf是以message的方式来管理数据
+3. 支持跨平台、跨语言
+4. 高性能、高可靠性
+5. 使用protobuf编译器能自动生成代码
+6. 通过protoc.exec编译器根据.proto自动生成.java文件
+
+工作流程：
+*.proto -> *.java -> ProtobufEncoder -> 二进制传输 -> ProtobufDecoder -> 业务对象*.java
+
+使用步骤：
+1. 引入依赖
+<dependency>
+    <groupId>com.google.protobuf</groupId>
+    <artifactId>protobuf-java</artifactId>
+    <version>3.6.1</version>
+</dependency>
+2. 编写proto文件

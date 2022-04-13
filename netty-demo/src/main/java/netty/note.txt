@@ -1,0 +1,76 @@
+1. core
+    可扩展的事件模型
+    交互API
+    零拷贝
+2. 支持的协议
+    HTTP\WebSocket
+    SSL-StartTLS
+    Google Protobuf
+    zlib/gzip Compression
+    大文件传输
+    RTSP
+3. 传输服务
+    Socket & Datagram
+    HTTP通道
+    In-VM Pipe
+
+单Reactor单线程
+    优点：一个线程处理所有连接、通信。模型简单，没有多个线程、进程通信。
+    缺点：性能问题，无法发挥多核CPU的性能。
+    缺点：可靠性无问题，线程以外终止，或者进入死循环，会导致整个系统通信模块不可用。
+    使用场景：客户端数量有限，业务处理非常快速。比如redis
+单Reactor多线程
+    优点：可以充分利用多核CPU的处理能力
+    缺点：多线程处理复杂、reactor承担所有事件请求、响应，可能有瓶颈问题。
+
+主从Reactor多线程
+    subreactor 将连接加入如到连接队列，并进行监听。并创建各种handler事件。
+    Reactor主线程可以对应多个Reactor子线程。
+
+    优点： 父线程和子线程职责明确。父线程只接收新连接，子线程完成后续业务处理。
+    优点：父线程与子线程的数据交互简单，Reactor主线程只需要把新连接传给子线程。
+    缺点：编程复杂度较高。
+Netty的线程模型是基于主从Reactor多线程模型，并且做了一定的改进，其中主从Reactor多线程模型有多个Reactor
+
+Reactor模式：
+    1. 基于I/O复用模型：多个连接共用一个阻塞对象，应用程序只需要在一个阻塞对象等待，无需阻塞等待所有连接。
+        当某个连接有新的数据可以处理时，操作系统通知应用程序，线程从阻塞状态返回，开始业务处理。
+    2. 基于线程池复用线程资源：不必再为每个连接创建线程，将连接完成后的业务处理任务任务分配给线程处理，
+        一个线程可以处理多个连接业务
+
+
+Netty主要基于主从Reactors多线程模型做了一些改进，其中主从Reactor多线模型由多个Reactor。
+
+1. BossGroup线程维护Selector，只关注Accept
+2. 当接收到Accept事件，获取到对应的SocketChannel，封装成NIOSocketChannel并注册到Worker线程（事件循环），并进行维护。
+3. 当Worker线程监听到selector中通道发生自己感兴趣的时间后，就进行处理（就由Handler处理）。Handler已经加入通道。
+
+
+BossGroup可以有多个NioEventLoop
+
+
+Netty抽象出两组线程池：
+    BossGroup：专用于客户端连接
+    WorkerGroup：专门负责网络读写
+
+    BossGroup和WorkerGroup都是NioEventLoopGroup。
+
+NioEventLoopGroup相当于一个事件循环组，这个组中含有多个事件循环，每个事件循环时一个NioEventLoop。
+NioEventLoop表示一个不断循环的执行处理任务的线程，每个NioEventLoop都有一个selector，
+用于监听绑定在其上的socket的网络通信。
+
+NioEventLoopGroup可以有多个线程，即可以含有多个NioEventLoop，可以指定。
+每个BossGroup下的NioEventLoop循环执行的步骤有3步：
+    1、轮询accept事件
+    2、处理accept事件，与client建立连接，生成NioSocketChannel，并将其注册到某个worker NIOEventLoop上的selector。
+    3、处理任务队列的任务，即runAllTasks
+每个WorkerGroup下的NioEventLoop循环执行的步骤：
+    1、循环read、write事件
+    2、处理i/o事件，在对应的NioSocketChannel处理，
+    3、处理任务队列的任务，即runtasks。
+
+每个WorkerGroup NioEventLoop处理业务时，会使用pipeline。pipeline中包含了channel，即通道pipeline可以获取对应的通道。
+管道中维护了很多的处理器，用于处理数据。
+管道中维护了很多的处理器，用于处理数据。
+
+

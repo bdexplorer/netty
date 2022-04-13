@@ -1,0 +1,26 @@
+NIO与零拷贝
+零拷贝是网络编程的关键，很多性能优化都离不开。
+Java中常用的零拷贝由mmap和sendFile
+
+# 传统IO拷贝次数比较多
+Hard drive(DMA) -> kernel buffer（CPU copy） -> user buffer（CPU copy） -> socket buffer -> protocol engine
+# 上下文件切换：
+user context -> kernel context -> user context -> kernel context
+
+# mmap
+mmap通过内存映射，将文件映射到内核缓冲区，同时，用户空间可以共享内核空间的数据。这样，在进行网络传输的时候，
+就可以减少内核空间到用户空间的拷贝次数
+Hard drive(DMA) -> kernel buffer -> socket buffer（DMA） -> protocol engine
+# 上下文切换
+user context -> kernel context -> user context -> kernel context
+
+# Linux 2.1 sendFile优化
+Hard drive(DMA) -> kernel buffer(CPU copy)->[socket buffer（DMA] -> protocol engine
+# 上下文切换
+user context -> kernel context（syscall read） -> user context
+
+
+0拷贝，没有CPU拷贝
+
+# Linux 2.4 sendFile做了一些修改，避免了从内核缓冲区到Socket buffer的操作，直接拷贝到协议栈，从而减少一次数据拷贝。
+# 其实有一次CPU拷贝，kernel buffer(CPU copy)->socket buffer，但是拷贝的信息很少，比如length和offset等
